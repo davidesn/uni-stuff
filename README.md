@@ -1,6 +1,3 @@
-# uni-stuff
-projects and stuff related to my exams
-
 the C code I was given to translate is this: 
 
 int processa(char *num, int d)
@@ -24,3 +21,4 @@ val=NUMERO[0]-48;
  printf(" Valore= %d \n",val);
  }
 }
+
