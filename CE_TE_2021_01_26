@@ -1,0 +1,88 @@
+.data
+stack: .space 32
+NUM: .space 16
+
+m1: .asciiz "Inserisci una stringa con soli numeri\n"
+m2: .asciiz " Valore= %d \n"
+
+val: .space 16
+p1s5: .space 8
+
+p1s3: .word 0
+addr: .space 8
+dim: .word 16
+
+.code
+
+            daddi $sp, $0, stack
+            daddi $sp, $sp, 32
+
+            ;    for(i=0;i<4;i++) {
+            daddi $s0, $0, 0 ; i = 0
+for:        slti $t0, $s0, 4
+            beq $t0, $0, end_exec
+
+            ;    printf("Inserisci una stringa con soli numeri\n");
+            daddi $t0, $0, m1
+            sd $t0, p1s5($0)
+            daddi r14, $0, p1s5
+            syscall 5
+
+            ;    scanf("%s",NUMERO);
+            daddi $t0, $0, NUM
+            sd $t0, addr($0)
+            daddi r14, $0, p1s3
+            syscall 3
+            move $a1, r1 ; strlen(NUM)
+
+            ;   if(strlen(NUMERO)<2)
+            slti $t0, $a1, 2
+            beq $t0, $0, process
+
+            ;    val=NUMERO[0]-48;
+            lbu $a0, 0($a1) ; $a0 = num[0]
+            daddi $s2, $a0, -48 ; $s2 = val
+            jal print
+
+            ;    else val=processa(NUMERO,strlen(NUMERO));
+process:    jal processa
+
+            ;   printf(" Valore= %d \n",val)
+
+print:      sd r1, val($0)
+            daddi $t0, $0, m2
+            sd $t0, p1s5($0)
+            daddi r14, $0, p1s5
+            syscall 5
+
+            daddi $s0, $s0, 1
+            j for
+
+end_exec:   syscall 0
+
+processa:   daddi $sp, $sp, -16
+            sd $s5, 0($sp)
+
+            ; int processa(char *num, int d)
+            ;  { int i,somma;
+            ;  somma=0;
+            daddi $s3, $0, 0 ; i = 0
+            daddi $s4, $0, 0 ; somma = 0
+
+            ;  for(i=0;i<d;i++)
+proc_for:        slt $t1, $s3, $a1
+            beq $t1, $0, return
+            ;   somma=somma+ num[i]-48;
+            dadd $t1, $s3, $a0 ; num + i
+            lbu $t2, 0($t1)     ; num[i]
+            daddi $t2, $t2, -48 ; num[i] - 48
+            dadd $s4, $s4, $t2 ; somma = somma + num[i]-48
+
+            daddi $s3, $s3, 4 ; i + 4 perche scorriamo una stringa di numeri
+            j proc_for
+
+            ;   return somma;
+return:     move r1, $s4
+            ld $s5, 0($sp)
+            daddi $sp, $sp, 16
+            jr $ra
